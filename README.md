@@ -1,57 +1,83 @@
-# redemrp_menu_base
+# redemrp_menu
  A Menu Base for RedEM:RP
 This script allows you create menu like RDR2.
 
 ## 1. Installation
 - Be sure you have RedEM and RedEM:RP Installed
-if not -> [RedEM](https://github.com/kanersps/redem) --> [RedEM:RP](https://github.com/RedEM-RP/redem_roleplay)
-- Clone redemrp_menu_base into [redemrp] folder
-- add ```ensure redemrp_menu_base``` after ```ensure redem_roleplay```
-
-![alt text](https://i.imgur.com/h7CIxyM.png)
+redem_roleplay FrameWork ```https://github.com/RedEM-RP/redem_roleplay```
+- Clone redemrp_menu into [redemrp] folder
+- add ```ensure redemrp_menu``` after ```ensure redem_roleplay```
 
 ## 2.Usage
 Add this on top your client side file
 ```
+----------------------------REDEMRP_MENU----------------------------
 MenuData = {}
-TriggerEvent("redemrp_menu_base:getData",function(call)
+TriggerEvent("rdr_menu:getData",function(call)
     MenuData = call
 end)
+----------------------------REDEMRP_MENU----------------------------
+
 ```
 Example:
 ```
-         MenuData.CloseAll()
-        local elements = {
- 
-                {label = "Test Option", value = 'test' , desc = "Press if you want print text"},
-        }
- 
-       MenuData.Open(
- 
-                'default', GetCurrentResourceName(), 'test_menu',
- 
-                {
- 
-                        title    = 'TestMenu',
-                        
-                        subtext    = 'There is a subtext',
- 
-                        align    = 'top-left',
- 
-                        elements = elements,
- 
-                },
-                function(data, menu)
+    MenuData.CloseAll()
+    local elements = {
+        {label = "Foods", value = 'foods', desc = "Cooking"},
+        {label = "Drinks", value = 'drinks', desc = "Drinks"},
+        {label = "Inventory", value = 'inven', desc = "Job Inventory"},
+    }
 
-                        if(data.current.value == 'test') then
-                               print("test")
-                        end
-                end,
-                
-                function(data, menu)
-                        menu.close()
-              end)  
+    if jobgrade > 4 then
+        table.insert(elements, {label = "Hire Employees", value = "hiremployees", desc = "Hire Employees"})
+        table.insert(elements, {label = "Fire an employee", value = "firemployees", desc = "Fire Employees"})
+    end
 
+    MenuData.Open(
+    'default', GetCurrentResourceName(), 'Saloon_Menu',
+    {
+        title    = 'Saloon',
+
+        subtext    = 'Select a Category',
+
+        align    = 'top-right',
+
+        elements = elements,
+    },
+    function(data, menu)
+        if(data.current.value == 'foods') then
+            MenuCook()
+        elseif(data.current.value == 'drinks') then
+            MenuDrinks()
+        elseif(data.current.value == 'inven') then
+            menu.close()
+            TriggerServerEvent("vesgoboy_craft:storage", jobcraft, 1500) -- JOB NAME AND STASH WEIGHT
+        elseif(data.current.value == 'hiremployees') then
+            MenuData.CloseAll()
+            AddTextEntry("FMMC_MPM_TYP5", "Type Citizen ID Of Employe (must be online)")
+            DisplayOnscreenKeyboard(3, "FMMC_MPM_TYP5", "", "", "", "", "", 30)
+            while (UpdateOnscreenKeyboard() == 0) do
+                DisableAllControlActions(0)
+                Citizen.Wait(0)
+            end
+            if (GetOnscreenKeyboardResult()) then
+                kbdRes = GetOnscreenKeyboardResult()
+            else
+                return
+            end
+            if #(kbdRes) >= 1 then
+                TriggerServerEvent("vesgoboy_craft:server:HireMember", kbdRes)
+            else
+                RedEM.Functions.NotifyLeft("Invalid entry!", "Add a Valid Document.", "menu_textures", "menu_icon_alert", 4000)
+            end
+        elseif data.current.value == 'firemployees' then
+            MenuData.CloseAll()
+            TriggerServerEvent("vesgoboy_craft:server:GetFireList")
+        end
+    end,
+    function(data, menu)
+        menu.close()
+    end)
 ```
 
 ## 3.Credits
